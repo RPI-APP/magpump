@@ -7,6 +7,14 @@
 // Define Display Communication
 #define DisplaySerial Serial1
 Picaso_Serial_4DLib Display(&DisplaySerial);
+// Communication constants
+// At 9600:
+//     10 ms is too fast
+//     20 ms seems good
+// At 115200:
+//     TODO: Crank this down and figure out what works
+//           I'm gonna guess 2ms
+const int DATA_RESPONSE_BUFFER_MS = 20;
 // Define temperature pin and variables
 const int temperature_pin = A0;
 unsigned long temperature_time = 0;
@@ -42,6 +50,16 @@ void setup() {
   DataSerial.begin(115200);
   // Initialize Communication for Amplifier
   AmpSerial.begin(9600);
+  delay(100);
+  AmpSerial.println("s r0x90 115200");
+  AmpSerial.flush();
+  AmpSerial.begin(115200);
+  delay(100);
+  // Nuke the OK response from switching baud rates
+  while (AmpSerial.available()) {
+      AmpSerial.read();
+  }
+  
   // Initialize Display Communication
   Display.Callback4D = mycallback;
   Display.TimeLimit4D   = 5000;
@@ -360,9 +378,8 @@ void sendInt(const String& guid, int data) {
 long obtain_data_ram(int param_id) {
   AmpSerial.print("g r");
   AmpSerial.println(param_id);
-  // Probably long enough for a whole message to get buffered
-  // 10 was small, 20 worked, 40 is guaranteed
-  delay(20);
+  AmpSerial.flush();
+  delay(DATA_RESPONSE_BUFFER_MS);
   kill_char();  // v
   kill_char();  // space
   bool negative = false;
