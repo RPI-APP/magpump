@@ -33,6 +33,7 @@ String trajectory_commands[] = {"i r0 32781",
                                 "i r0 32788",
                                 "i r0 32789"};
 // Define other stuff
+// This is a test change
 unsigned long check_time = 0;
 unsigned long output_time = 0;
 float x, y;
